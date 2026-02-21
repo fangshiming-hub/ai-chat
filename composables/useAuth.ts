@@ -6,6 +6,12 @@ export interface User {
   name: string | null
 }
 
+export interface ApiResponse<T = any> {
+  statusCode: number
+  msg: string
+  data: T
+}
+
 const user = ref<User | null>(null)
 const token = ref<string | null>(null)
 const isLoading = ref(false)
@@ -49,13 +55,23 @@ export function useAuth() {
   async function login(email: string, password: string): Promise<void> {
     isLoading.value = true
     try {
-      const data = await $fetch('/api/auth/login', {
+      const response = await $fetch<ApiResponse<{ user: User; token: string }>>('/api/auth/login', {
         method: 'POST',
         body: { email, password }
       })
-      setAuth(data.token, data.user)
+
+      if (response.statusCode !== 0) {
+        throw new Error(response.msg || '登录失败')
+      }
+
+      setAuth(response.data.token, response.data.user)
     } catch (error: any) {
       clearAuth()
+      // 如果是 HTTP 错误，使用 response 中的 msg
+      if (error.response?._data) {
+        const data = error.response._data as ApiResponse
+        throw new Error(data.msg || '登录失败')
+      }
       throw new Error(error.message || '登录失败')
     } finally {
       isLoading.value = false
@@ -66,13 +82,22 @@ export function useAuth() {
   async function register(email: string, password: string, name?: string): Promise<void> {
     isLoading.value = true
     try {
-      const data = await $fetch('/api/auth/register', {
+      const response = await $fetch<ApiResponse<{ user: User; token: string }>>('/api/auth/register', {
         method: 'POST',
         body: { email, password, name }
       })
-      setAuth(data.token, data.user)
+
+      if (response.statusCode !== 0) {
+        throw new Error(response.msg || '注册失败')
+      }
+
+      setAuth(response.data.token, response.data.user)
     } catch (error: any) {
       clearAuth()
+      if (error.response?._data) {
+        const data = error.response._data as ApiResponse
+        throw new Error(data.msg || '注册失败')
+      }
       throw new Error(error.message || '注册失败')
     } finally {
       isLoading.value = false
@@ -95,11 +120,16 @@ export function useAuth() {
     if (!token.value) return false
 
     try {
-      const data = await $fetch('/api/auth/me', {
+      const response = await $fetch<ApiResponse<User>>('/api/auth/me', {
         headers: getAuthHeader()
       })
-      user.value = data.user
-      return true
+
+      if (response.statusCode === 0) {
+        user.value = response.data
+        return true
+      }
+      clearAuth()
+      return false
     } catch {
       clearAuth()
       return false

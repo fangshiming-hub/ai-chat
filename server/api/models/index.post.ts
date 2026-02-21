@@ -1,14 +1,15 @@
 import { eq, and } from 'drizzle-orm'
 import { db } from '../../db'
 import { modelConfigs } from '../../db/schema'
-import { requireAuth } from '../../utils/getCurrentUser'
+import { apiHandlerAuth } from '../../utils/apiHandler'
+import { errorResponse, ErrorCodes } from '../../utils/response'
 
-export default requireAuth(async (event, user) => {
+export default apiHandlerAuth(async (event, user) => {
   const body = await readBody(event)
 
   // 验证必填字段
   if (!body.name || !body.provider || !body.apiKey || !body.model) {
-    throw createError({ statusCode: 400, message: 'Missing required fields' })
+    return errorResponse('请填写所有必填字段', ErrorCodes.INVALID_PARAMS)
   }
 
   // 如果设置为默认，取消该用户的其他默认

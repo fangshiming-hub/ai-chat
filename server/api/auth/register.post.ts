@@ -3,10 +3,11 @@ import { db } from '../../db'
 import { users } from '../../db/schema'
 import { eq } from 'drizzle-orm'
 import { hashPassword, generateToken } from '../../utils/auth'
+import { successResponse, errorResponse, ErrorCodes } from '../../utils/response'
 
 const registerSchema = z.object({
-  email: z.string().email('Invalid email format'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  email: z.string().email('邮箱格式不正确'),
+  password: z.string().min(6, '密码至少6位'),
   name: z.string().optional()
 })
 
@@ -16,10 +17,7 @@ export default defineEventHandler(async (event) => {
     const result = registerSchema.safeParse(body)
 
     if (!result.success) {
-      throw createError({
-        statusCode: 400,
-        message: result.error.errors[0].message
-      })
+      return errorResponse(result.error.errors[0].message, ErrorCodes.INVALID_PARAMS)
     }
 
     const { email, password, name } = result.data
@@ -30,10 +28,7 @@ export default defineEventHandler(async (event) => {
     })
 
     if (existingUser) {
-      throw createError({
-        statusCode: 409,
-        message: 'Email already registered'
-      })
+      return errorResponse('该邮箱已被注册', ErrorCodes.AUTH_EMAIL_EXISTS)
     }
 
     // 哈希密码
@@ -56,17 +51,12 @@ export default defineEventHandler(async (event) => {
       email: user.email
     })
 
-    return {
+    return successResponse({
       user,
       token
-    }
+    }, '注册成功')
   } catch (error: any) {
-    if (error.statusCode) {
-      throw error
-    }
-    throw createError({
-      statusCode: 500,
-      message: error.message || 'Registration failed'
-    })
+    console.error('Register error:', error)
+    return errorResponse(error.message || '注册失败', ErrorCodes.UNKNOWN_ERROR)
   }
 })

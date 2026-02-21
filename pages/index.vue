@@ -58,6 +58,7 @@ import ModelSelector from '~/components/chat/ModelSelector.vue'
 import MultiSelect from '~/components/ui/MultiSelect.vue'
 import { useChat } from '~/composables/useChat'
 import { useConversations } from '~/composables/useConversations'
+import type { ApiResponse } from '~/composables/useAuth'
 
 const { messages, isLoading, sendMessage, clearMessages } = useChat()
 const { conversations, fetchConversations, deleteConversation: deleteConv, createConversation } = useConversations()
@@ -72,8 +73,12 @@ const chatContainer = ref<HTMLDivElement>()
 // 获取知识库列表
 async function fetchKnowledgeBases() {
   try {
-    const data = await $fetch('/api/kb')
-    kbOptions.value = data.map((kb: any) => ({
+    const response = await $fetch<ApiResponse<any[]>>('/api/kb')
+    if (response.statusCode !== 0) {
+      console.error('Failed to fetch knowledge bases:', response.msg)
+      return
+    }
+    kbOptions.value = response.data.map((kb: any) => ({
       label: kb.name,
       value: kb.id
     }))
@@ -111,8 +116,13 @@ async function selectConversation(id: string) {
   currentConversationId.value = id
   // 加载对话历史
   try {
-    const data = await $fetch(`/api/conversations/${id}`)
+    const response = await $fetch<ApiResponse<any>>(`/api/conversations/${id}`)
+    if (response.statusCode !== 0) {
+      console.error('Failed to load conversation:', response.msg)
+      return
+    }
     // 加载消息...
+    // TODO: 从 response.data 加载消息到 messages
   } catch (error) {
     console.error('Failed to load conversation:', error)
   }

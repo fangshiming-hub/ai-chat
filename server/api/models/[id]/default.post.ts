@@ -1,12 +1,13 @@
 import { eq, and } from 'drizzle-orm'
 import { db } from '../../../db'
 import { modelConfigs } from '../../../db/schema'
-import { requireAuth } from '../../../utils/getCurrentUser'
+import { apiHandlerAuth } from '../../../utils/apiHandler'
+import { errorResponse, ErrorCodes } from '../../../utils/response'
 
-export default requireAuth(async (event, user) => {
+export default apiHandlerAuth(async (event, user) => {
   const id = getRouterParam(event, 'id')
   if (!id) {
-    throw createError({ statusCode: 400, message: 'Model ID is required' })
+    return errorResponse('模型 ID 不能为空', ErrorCodes.INVALID_PARAMS)
   }
 
   // 取消该用户的其他默认

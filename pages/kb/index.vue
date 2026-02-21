@@ -53,26 +53,52 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import type { ApiResponse } from '~/composables/useAuth'
 
 const knowledgeBases = ref<any[]>([])
 const showAddModal = ref(false)
 const form = ref({ name: '', description: '' })
 
 async function fetchKnowledgeBases() {
-  knowledgeBases.value = await $fetch('/api/kb')
+  try {
+    const response = await $fetch<ApiResponse<any[]>>('/api/kb')
+    if (response.statusCode !== 0) {
+      console.error('Failed to fetch knowledge bases:', response.msg)
+      return
+    }
+    knowledgeBases.value = response.data
+  } catch (error) {
+    console.error('Failed to fetch knowledge bases:', error)
+  }
 }
 
 async function handleSubmit() {
-  await $fetch('/api/kb', { method: 'POST', body: form.value })
-  showAddModal.value = false
-  form.value = { name: '', description: '' }
-  await fetchKnowledgeBases()
+  try {
+    const response = await $fetch<ApiResponse<any>>('/api/kb', { method: 'POST', body: form.value })
+    if (response.statusCode !== 0) {
+      alert(response.msg || '创建失败')
+      return
+    }
+    showAddModal.value = false
+    form.value = { name: '', description: '' }
+    await fetchKnowledgeBases()
+  } catch (error: any) {
+    alert(error.message || '创建失败')
+  }
 }
 
 async function deleteKB(id: string) {
   if (!confirm('确定删除？')) return
-  await $fetch(`/api/kb/${id}`, { method: 'DELETE' })
-  await fetchKnowledgeBases()
+  try {
+    const response = await $fetch<ApiResponse<any>>(`/api/kb/${id}`, { method: 'DELETE' })
+    if (response.statusCode !== 0) {
+      alert(response.msg || '删除失败')
+      return
+    }
+    await fetchKnowledgeBases()
+  } catch (error: any) {
+    alert(error.message || '删除失败')
+  }
 }
 
 onMounted(fetchKnowledgeBases)

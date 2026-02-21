@@ -1,9 +1,9 @@
 import { eq } from 'drizzle-orm'
 import { db } from '../../db'
 import { knowledgeBases } from '../../db/schema'
-import { requireAuth } from '../../utils/getCurrentUser'
+import { apiHandlerAuth } from '../../utils/apiHandler'
 
-export default requireAuth(async (event, user) => {
+export default apiHandlerAuth(async (event, user) => {
   const data = await db.query.knowledgeBases.findMany({
     where: eq(knowledgeBases.userId, user.id),
     orderBy: (knowledgeBases, { desc }) => [desc(knowledgeBases.createdAt)]

@@ -16,6 +16,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import type { ApiResponse } from '~/composables/useAuth'
 
 const props = defineProps<{
   modelValue: string
@@ -34,10 +35,14 @@ const localValue = computed({
 
 async function fetchModels() {
   try {
-    const data = await $fetch('/api/models')
-    models.value = data
+    const response = await $fetch<ApiResponse<Array<{ id: string; name: string; provider: string; isDefault: boolean }>>>('/api/models')
+    if (response.statusCode !== 0) {
+      console.error('Failed to fetch models:', response.msg)
+      return
+    }
+    models.value = response.data
     // 自动选择默认模型
-    const defaultModel = data.find((m: any) => m.isDefault)
+    const defaultModel = response.data.find((m) => m.isDefault)
     if (defaultModel && !localValue.value) {
       localValue.value = defaultModel.id
     }

@@ -3,10 +3,11 @@ import { db } from '../../db'
 import { users } from '../../db/schema'
 import { eq } from 'drizzle-orm'
 import { verifyPassword, generateToken } from '../../utils/auth'
+import { successResponse, errorResponse, ErrorCodes } from '../../utils/response'
 
 const loginSchema = z.object({
-  email: z.string().email('Invalid email format'),
-  password: z.string().min(1, 'Password is required')
+  email: z.string().email('邮箱格式不正确'),
+  password: z.string().min(1, '密码不能为空')
 })
 
 export default defineEventHandler(async (event) => {
@@ -15,10 +16,7 @@ export default defineEventHandler(async (event) => {
     const result = loginSchema.safeParse(body)
 
     if (!result.success) {
-      throw createError({
-        statusCode: 400,
-        message: result.error.errors[0].message
-      })
+      return errorResponse(result.error.errors[0].message, ErrorCodes.INVALID_PARAMS)
     }
 
     const { email, password } = result.data
@@ -29,20 +27,14 @@ export default defineEventHandler(async (event) => {
     })
 
     if (!user) {
-      throw createError({
-        statusCode: 401,
-        message: 'Invalid email or password'
-      })
+      return errorResponse('邮箱或密码错误', ErrorCodes.AUTH_INVALID_CREDENTIALS)
     }
 
     // 验证密码
     const isValid = await verifyPassword(password, user.passwordHash)
 
     if (!isValid) {
-      throw createError({
-        statusCode: 401,
-        message: 'Invalid email or password'
-      })
+      return errorResponse('邮箱或密码错误', ErrorCodes.AUTH_INVALID_CREDENTIALS)
     }
 
     // 生成 JWT Token
@@ -51,21 +43,16 @@ export default defineEventHandler(async (event) => {
       email: user.email
     })
 
-    return {
+    return successResponse({
       user: {
         id: user.id,
         email: user.email,
         name: user.name
       },
       token
-    }
+    }, '登录成功')
   } catch (error: any) {
-    if (error.statusCode) {
-      throw error
-    }
-    throw createError({
-      statusCode: 500,
-      message: error.message || 'Login failed'
-    })
+    console.error('Login error:', error)
+    return errorResponse(error.message || '登录失败', ErrorCodes.UNKNOWN_ERROR)
   }
 })

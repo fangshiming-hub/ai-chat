@@ -1,7 +1,5 @@
-import { requireAuth } from '../../utils/getCurrentUser'
+import { apiHandlerAuth } from '../../utils/apiHandler'
 
-export default requireAuth(async (event, user) => {
-  return {
-    user
-  }
+export default apiHandlerAuth(async (event, user) => {
+  return user
 })

@@ -88,6 +88,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import type { ApiResponse } from '~/composables/useAuth'
 
 interface Model {
   id: string
@@ -111,7 +112,12 @@ const form = ref({
 
 async function fetchModels() {
   try {
-    models.value = await $fetch('/api/models')
+    const response = await $fetch<ApiResponse<Model[]>>('/api/models')
+    if (response.statusCode !== 0) {
+      console.error('Failed to fetch models:', response.msg)
+      return
+    }
+    models.value = response.data
   } catch (error) {
     console.error('Failed:', error)
   }
@@ -119,37 +125,49 @@ async function fetchModels() {
 
 async function handleSubmit() {
   try {
-    await $fetch('/api/models', {
+    const response = await $fetch<ApiResponse<any>>('/api/models', {
       method: 'POST',
       body: {
         ...form.value,
         temperature: parseFloat(form.value.temperature)
       }
     })
+    if (response.statusCode !== 0) {
+      alert(response.msg || '添加失败')
+      return
+    }
     showAddModal.value = false
     form.value = { name: '', provider: 'openai', baseUrl: '', apiKey: '', model: '', temperature: '0.7', isDefault: false }
     await fetchModels()
-  } catch (error) {
-    alert('添加失败')
+  } catch (error: any) {
+    alert(error.message || '添加失败')
   }
 }
 
 async function setDefault(id: string) {
   try {
-    await $fetch(`/api/models/${id}/default`, { method: 'POST' })
+    const response = await $fetch<ApiResponse<any>>(`/api/models/${id}/default`, { method: 'POST' })
+    if (response.statusCode !== 0) {
+      alert(response.msg || '设置失败')
+      return
+    }
     await fetchModels()
-  } catch (error) {
-    console.error('Failed:', error)
+  } catch (error: any) {
+    alert(error.message || '设置失败')
   }
 }
 
 async function deleteModel(id: string) {
   if (!confirm('确定要删除这个模型吗？')) return
   try {
-    await $fetch(`/api/models/${id}`, { method: 'DELETE' })
+    const response = await $fetch<ApiResponse<any>>(`/api/models/${id}`, { method: 'DELETE' })
+    if (response.statusCode !== 0) {
+      alert(response.msg || '删除失败')
+      return
+    }
     await fetchModels()
-  } catch (error) {
-    console.error('Failed:', error)
+  } catch (error: any) {
+    alert(error.message || '删除失败')
   }
 }
 

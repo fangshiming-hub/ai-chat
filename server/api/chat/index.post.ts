@@ -4,16 +4,23 @@ import { db } from '../../db'
 import { modelConfigs, messages, conversations } from '../../db/schema'
 import { createModel } from '../../utils/ai'
 import { vectorStore } from '../../utils/vectorStore'
-import { requireAuth } from '../../utils/getCurrentUser'
+import { errorResponse, ErrorCodes } from '../../utils/response'
+import { getCurrentUser } from '../../utils/getCurrentUser'
 import type { ChatRequest } from '~/types'
 
-export default requireAuth(async (event, user) => {
+export default defineEventHandler(async (event) => {
   try {
+    // 验证用户
+    const user = await getCurrentUser(event)
+    if (!user) {
+      return errorResponse('请先登录', ErrorCodes.UNAUTHORIZED)
+    }
+
     const body = await readBody<ChatRequest>(event)
     const { message, conversationId, modelId, kbIds } = body
 
     if (!message?.trim()) {
-      throw createError({ statusCode: 400, message: 'Message is required' })
+      return errorResponse('消息内容不能为空', ErrorCodes.INVALID_PARAMS)
     }
 
     // 获取或创建对话
@@ -33,7 +40,7 @@ export default requireAuth(async (event, user) => {
         )
       })
       if (!conv) {
-        throw createError({ statusCode: 403, message: 'Access denied' })
+        return errorResponse('无权访问该对话', ErrorCodes.FORBIDDEN)
       }
     }
 
@@ -71,7 +78,7 @@ export default requireAuth(async (event, user) => {
     }
 
     if (!modelConfig) {
-      throw createError({ statusCode: 400, message: 'No model configured' })
+      return errorResponse('请先配置 AI 模型', ErrorCodes.CHAT_NO_MODEL)
     }
 
     // RAG 检索：如果有知识库，检索相关内容
@@ -139,9 +146,7 @@ ${context}
     // 返回流式响应
     return result.toDataStreamResponse()
   } catch (error: any) {
-    throw createError({
-      statusCode: error.statusCode || 500,
-      message: error.message || 'Internal server error'
-    })
+    console.error('Chat error:', error)
+    return errorResponse(error.message || '对话失败', ErrorCodes.CHAT_STREAM_ERROR)
   }
 })

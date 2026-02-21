@@ -1,4 +1,5 @@
 import { ref, computed } from 'vue'
+import type { ApiResponse } from './useAuth'
 
 export interface Conversation {
   id: string
@@ -17,10 +18,16 @@ export function useConversations() {
   async function fetchConversations() {
     isLoading.value = true
     try {
-      const data = await $fetch<Conversation[]>('/api/conversations', {
+      const response = await $fetch<ApiResponse<Conversation[]>>('/api/conversations', {
         headers: getAuthHeader()
       })
-      conversations.value = data.sort((a, b) =>
+
+      if (response.statusCode !== 0) {
+        console.error('Failed to fetch conversations:', response.msg)
+        return
+      }
+
+      conversations.value = response.data.sort((a, b) =>
         new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
       )
     } catch (error) {
@@ -32,28 +39,44 @@ export function useConversations() {
 
   async function createConversation(input: { title?: string; modelId?: string; kbIds?: string[] }) {
     try {
-      const data = await $fetch<Conversation>('/api/conversations', {
+      const response = await $fetch<ApiResponse<Conversation>>('/api/conversations', {
         method: 'POST',
         headers: getAuthHeader(),
         body: input
       })
-      conversations.value.unshift(data)
-      return data
-    } catch (error) {
-      console.error('Failed to create conversation:', error)
+
+      if (response.statusCode !== 0) {
+        throw new Error(response.msg || '创建对话失败')
+      }
+
+      conversations.value.unshift(response.data)
+      return response.data
+    } catch (error: any) {
+      if (error.response?._data) {
+        const data = error.response._data as ApiResponse
+        throw new Error(data.msg || '创建对话失败')
+      }
       throw error
     }
   }
 
   async function deleteConversation(id: string) {
     try {
-      await $fetch(`/api/conversations/${id}`, {
+      const response = await $fetch<ApiResponse<{ success: boolean }>>(`/api/conversations/${id}`, {
         method: 'DELETE',
         headers: getAuthHeader()
       })
+
+      if (response.statusCode !== 0) {
+        throw new Error(response.msg || '删除对话失败')
+      }
+
       conversations.value = conversations.value.filter(c => c.id !== id)
-    } catch (error) {
-      console.error('Failed to delete conversation:', error)
+    } catch (error: any) {
+      if (error.response?._data) {
+        const data = error.response._data as ApiResponse
+        throw new Error(data.msg || '删除对话失败')
+      }
       throw error
     }
   }
