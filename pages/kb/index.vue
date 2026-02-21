@@ -101,5 +101,11 @@ async function deleteKB(id: string) {
   }
 }
 
-onMounted(fetchKnowledgeBases)
+onMounted(async () => {
+  const { checkAuth } = useAuth()
+  const isAuthenticated = await checkAuth()
+  if (isAuthenticated) {
+    await fetchKnowledgeBases()
+  }
+})
 </script>

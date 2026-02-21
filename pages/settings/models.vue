@@ -171,5 +171,11 @@ async function deleteModel(id: string) {
   }
 }
 
-onMounted(fetchModels)
+onMounted(async () => {
+  const { checkAuth } = useAuth()
+  const isAuthenticated = await checkAuth()
+  if (isAuthenticated) {
+    await fetchModels()
+  }
+})
 </script>

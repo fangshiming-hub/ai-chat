@@ -51,7 +51,11 @@ async function fetchModels() {
   }
 }
 
-onMounted(() => {
-  fetchModels()
+onMounted(async () => {
+  const { checkAuth } = useAuth()
+  const isAuthenticated = await checkAuth()
+  if (isAuthenticated) {
+    await fetchModels()
+  }
 })
 </script>

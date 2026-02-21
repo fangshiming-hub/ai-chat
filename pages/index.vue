@@ -154,8 +154,14 @@ function scrollToBottom() {
 
 watch(messages, scrollToBottom, { deep: true })
 
-onMounted(() => {
-  fetchKnowledgeBases()
-  fetchConversations()
+onMounted(async () => {
+  // 等待认证状态初始化完成
+  const { checkAuth } = useAuth()
+  const isAuthenticated = await checkAuth()
+
+  if (isAuthenticated) {
+    await fetchKnowledgeBases()
+    await fetchConversations()
+  }
 })
 </script>

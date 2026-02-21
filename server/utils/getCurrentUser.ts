@@ -21,7 +21,18 @@ export async function getCurrentUser(event: any): Promise<CurrentUser | null> {
       return null
     }
 
-    const payload = verifyToken(token)
+    let payload: JWTPayload
+    try {
+      payload = verifyToken(token)
+    } catch (tokenError: any) {
+      // JWT 验证失败（过期或无效）
+      console.log('Token verification failed:', tokenError.message)
+      return null
+    }
+
+    if (!payload?.userId) {
+      return null
+    }
 
     const user = await db.query.users.findFirst({
       where: eq(users.id, payload.userId),
@@ -34,6 +45,7 @@ export async function getCurrentUser(event: any): Promise<CurrentUser | null> {
 
     return user || null
   } catch (error) {
+    console.error('getCurrentUser error:', error)
     return null
   }
 }

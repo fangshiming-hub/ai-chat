@@ -7,11 +7,16 @@ export function apiHandler(handler: (event: any) => Promise<any>) {
   return defineEventHandler(async (event) => {
     try {
       const result = await handler(event)
+      // 确保始终返回有效的响应对象
+      if (result === undefined) {
+        return successResponse(null)
+      }
       return successResponse(result)
     } catch (error: any) {
       // 处理 H3 错误
       if (error.statusCode) {
         const statusCode = mapHttpStatusToErrorCode(error.statusCode)
+        setResponseStatus(event, error.statusCode)
         return errorResponse(error.message || '请求失败', statusCode)
       }
 
@@ -23,6 +28,7 @@ export function apiHandler(handler: (event: any) => Promise<any>) {
 
       // 未知错误
       console.error('API Error:', error)
+      setResponseStatus(event, 500)
       return errorResponse(error.message || '服务器内部错误', ErrorCodes.UNKNOWN_ERROR)
     }
   })
@@ -38,15 +44,22 @@ export function apiHandlerAuth(handler: (event: any, user: any) => Promise<any>)
       const user = await getCurrentUser(event)
 
       if (!user) {
+        // 设置 HTTP 状态码并返回错误响应
+        setResponseStatus(event, 401)
         return errorResponse('请先登录', ErrorCodes.UNAUTHORIZED)
       }
 
       const result = await handler(event, user)
+      // 确保始终返回有效的响应对象
+      if (result === undefined) {
+        return successResponse(null)
+      }
       return successResponse(result)
     } catch (error: any) {
       // 处理 H3 错误
       if (error.statusCode) {
         const statusCode = mapHttpStatusToErrorCode(error.statusCode)
+        setResponseStatus(event, error.statusCode)
         return errorResponse(error.message || '请求失败', statusCode)
       }
 
@@ -55,8 +68,15 @@ export function apiHandlerAuth(handler: (event: any, user: any) => Promise<any>)
         return handlePrismaError(error)
       }
 
+      // 处理 JWT 错误
+      if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+        setResponseStatus(event, 401)
+        return errorResponse('登录已过期，请重新登录', ErrorCodes.AUTH_TOKEN_EXPIRED)
+      }
+
       // 未知错误
       console.error('API Error:', error)
+      setResponseStatus(event, 500)
       return errorResponse(error.message || '服务器内部错误', ErrorCodes.UNKNOWN_ERROR)
     }
   })
