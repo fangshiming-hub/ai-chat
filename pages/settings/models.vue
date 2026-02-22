@@ -111,8 +111,11 @@ const form = ref({
 })
 
 async function fetchModels() {
+  const { getAuthHeader } = useAuth()
   try {
-    const response = await $fetch<ApiResponse<Model[]>>('/api/models')
+    const response = await $fetch<ApiResponse<Model[]>>('/api/models', {
+      headers: getAuthHeader()
+    })
     if (response.statusCode !== 0) {
       console.error('Failed to fetch models:', response.msg)
       return
@@ -124,9 +127,11 @@ async function fetchModels() {
 }
 
 async function handleSubmit() {
+  const { getAuthHeader } = useAuth()
   try {
     const response = await $fetch<ApiResponse<any>>('/api/models', {
       method: 'POST',
+      headers: getAuthHeader(),
       body: {
         ...form.value,
         temperature: parseFloat(form.value.temperature)
@@ -145,8 +150,12 @@ async function handleSubmit() {
 }
 
 async function setDefault(id: string) {
+  const { getAuthHeader } = useAuth()
   try {
-    const response = await $fetch<ApiResponse<any>>(`/api/models/${id}/default`, { method: 'POST' })
+    const response = await $fetch<ApiResponse<any>>(`/api/models/${id}/default`, {
+      method: 'POST',
+      headers: getAuthHeader()
+    })
     if (response.statusCode !== 0) {
       alert(response.msg || '设置失败')
       return
@@ -158,9 +167,13 @@ async function setDefault(id: string) {
 }
 
 async function deleteModel(id: string) {
+  const { getAuthHeader } = useAuth()
   if (!confirm('确定要删除这个模型吗？')) return
   try {
-    const response = await $fetch<ApiResponse<any>>(`/api/models/${id}`, { method: 'DELETE' })
+    const response = await $fetch<ApiResponse<any>>(`/api/models/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeader()
+    })
     if (response.statusCode !== 0) {
       alert(response.msg || '删除失败')
       return

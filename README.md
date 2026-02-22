@@ -83,7 +83,7 @@ npm run dev
 
 ```
 .
-├── components/          # Vue 组件
+├── components/         # Vue 组件
 │   ├── chat/           # 对话组件
 │   ├── kb/             # 知识库组件
 │   └── ui/             # 通用 UI

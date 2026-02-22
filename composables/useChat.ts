@@ -82,11 +82,16 @@ export function useChat() {
 
         for (const line of lines) {
           if (line.startsWith('0:')) {
+            // 文本内容
             const content = line.slice(2).replace(/^"|"$/g, '')
             const lastMessage = messages.value[messages.value.length - 1]
             if (lastMessage?.role === 'assistant') {
               lastMessage.content += content
             }
+          } else if (line.startsWith('3:')) {
+            // 错误消息
+            const errorMsg = line.slice(2).replace(/^"|"$/g, '')
+            throw new Error(errorMsg || 'AI 响应错误')
           }
         }
       }

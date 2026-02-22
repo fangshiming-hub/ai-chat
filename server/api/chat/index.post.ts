@@ -124,27 +124,42 @@ ${context}
     }
 
     // 流式生成
-    const result = await streamText({
-      model: createModel(modelConfig),
-      system: systemPrompt,
-      messages: chatMessages,
-      maxTokens: modelConfig.maxTokens || undefined,
-      temperature: modelConfig.temperature || undefined
+    console.log('Creating stream with config:', {
+      provider: modelConfig.provider,
+      model: modelConfig.model,
+      baseUrl: modelConfig.baseUrl,
+      messageCount: chatMessages.length
     })
 
-    // 读取完整响应并保存
-    const fullResponse = await result.text
+    try {
+      const result = streamText({
+        model: createModel(modelConfig),
+        system: systemPrompt,
+        messages: chatMessages,
+        maxTokens: modelConfig.maxTokens || undefined,
+        // temperature: modelConfig.temperature || undefined,
+        temperature: 1,
+        onError: (event) => {
+          console.error('Stream error:', event.error)
+        },
+        onFinish: async ({ text, finishReason, usage }) => {
+          console.log('Stream finished:', { finishReason, usage, textLength: text.length })
+          // 流完成后保存AI回复
+          await db.insert(messages).values({
+            conversationId: convId,
+            role: 'assistant',
+            content: text,
+            sources: sources.length > 0 ? sources : undefined
+          })
+        }
+      })
 
-    // 保存AI回复（包含来源）
-    await db.insert(messages).values({
-      conversationId: convId,
-      role: 'assistant',
-      content: fullResponse,
-      sources: sources.length > 0 ? sources : undefined
-    })
-
-    // 返回流式响应
-    return result.toDataStreamResponse()
+      // 返回流式响应
+      return result.toDataStreamResponse()
+    } catch (streamError: any) {
+      console.error('Stream creation error:', streamError)
+      throw streamError
+    }
   } catch (error: any) {
     console.error('Chat error:', error)
     return errorResponse(error.message || '对话失败', ErrorCodes.CHAT_STREAM_ERROR)

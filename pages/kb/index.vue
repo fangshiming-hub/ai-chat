@@ -60,8 +60,11 @@ const showAddModal = ref(false)
 const form = ref({ name: '', description: '' })
 
 async function fetchKnowledgeBases() {
+  const { getAuthHeader } = useAuth()
   try {
-    const response = await $fetch<ApiResponse<any[]>>('/api/kb')
+    const response = await $fetch<ApiResponse<any[]>>('/api/kb', {
+      headers: getAuthHeader()
+    })
     if (response.statusCode !== 0) {
       console.error('Failed to fetch knowledge bases:', response.msg)
       return
@@ -73,8 +76,13 @@ async function fetchKnowledgeBases() {
 }
 
 async function handleSubmit() {
+  const { getAuthHeader } = useAuth()
   try {
-    const response = await $fetch<ApiResponse<any>>('/api/kb', { method: 'POST', body: form.value })
+    const response = await $fetch<ApiResponse<any>>('/api/kb', {
+      method: 'POST',
+      headers: getAuthHeader(),
+      body: form.value
+    })
     if (response.statusCode !== 0) {
       alert(response.msg || '创建失败')
       return
@@ -88,9 +96,13 @@ async function handleSubmit() {
 }
 
 async function deleteKB(id: string) {
+  const { getAuthHeader } = useAuth()
   if (!confirm('确定删除？')) return
   try {
-    const response = await $fetch<ApiResponse<any>>(`/api/kb/${id}`, { method: 'DELETE' })
+    const response = await $fetch<ApiResponse<any>>(`/api/kb/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeader()
+    })
     if (response.statusCode !== 0) {
       alert(response.msg || '删除失败')
       return

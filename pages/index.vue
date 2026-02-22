@@ -72,8 +72,11 @@ const chatContainer = ref<HTMLDivElement>()
 
 // 获取知识库列表
 async function fetchKnowledgeBases() {
+  const { getAuthHeader } = useAuth()
   try {
-    const response = await $fetch<ApiResponse<any[]>>('/api/kb')
+    const response = await $fetch<ApiResponse<any[]>>('/api/kb', {
+      headers: getAuthHeader()
+    })
     if (response.statusCode !== 0) {
       console.error('Failed to fetch knowledge bases:', response.msg)
       return
@@ -115,8 +118,11 @@ async function handleSend() {
 async function selectConversation(id: string) {
   currentConversationId.value = id
   // 加载对话历史
+  const { getAuthHeader } = useAuth()
   try {
-    const response = await $fetch<ApiResponse<any>>(`/api/conversations/${id}`)
+    const response = await $fetch<ApiResponse<any>>(`/api/conversations/${id}`, {
+      headers: getAuthHeader()
+    })
     if (response.statusCode !== 0) {
       console.error('Failed to load conversation:', response.msg)
       return

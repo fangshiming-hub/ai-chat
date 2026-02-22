@@ -63,3 +63,7 @@ build
 
 # Local config
 .claude/settings.local.json
+
+# Docker volumes
+pgadmin-data/
+postgres_data/

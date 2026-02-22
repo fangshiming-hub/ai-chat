@@ -34,8 +34,11 @@ const localValue = computed({
 })
 
 async function fetchModels() {
+  const { getAuthHeader } = useAuth()
   try {
-    const response = await $fetch<ApiResponse<Array<{ id: string; name: string; provider: string; isDefault: boolean }>>>('/api/models')
+    const response = await $fetch<ApiResponse<Array<{ id: string; name: string; provider: string; isDefault: boolean }>>>('/api/models', {
+      headers: getAuthHeader()
+    })
     if (response.statusCode !== 0) {
       console.error('Failed to fetch models:', response.msg)
       return

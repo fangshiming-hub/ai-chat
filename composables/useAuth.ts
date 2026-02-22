@@ -24,9 +24,13 @@ export function useAuth() {
     if (process.client) {
       const savedToken = localStorage.getItem('token')
       const savedUser = localStorage.getItem('user')
-      if (savedToken && savedUser) {
-        token.value = savedToken
-        user.value = JSON.parse(savedUser)
+      if (savedToken && savedUser && savedUser !== 'undefined') {
+        try {
+          token.value = savedToken
+          user.value = JSON.parse(savedUser)
+        } catch {
+          clearAuth()
+        }
       }
     }
   }
