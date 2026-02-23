@@ -31,7 +31,7 @@
 
       <!-- 对话区域 - 更宽的容器 -->
       <div ref="chatContainer" class="flex-1 overflow-y-auto custom-scrollbar">
-        <div class="max-w-4xl mx-auto px-6 py-6 space-y-6">
+        <div class="max-w-6xl mx-auto px-6 py-6 space-y-6">
           <!-- 空状态 -->
           <div v-if="messages.length === 0" class="flex flex-col items-center justify-center h-96 text-center">
             <div class="w-20 h-20 rounded-3xl bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center mb-6 shadow-glow">
@@ -65,7 +65,7 @@
 
       <!-- 输入区域 - 固定在底部 -->
       <div class="border-t border-gray-200/50 dark:border-surface-800/50 bg-white/80 dark:bg-surface-900/80 backdrop-blur-xl">
-        <div class="max-w-4xl mx-auto px-6 py-4">
+        <div class="max-w-6xl mx-auto px-6 py-4">
           <ChatInput
             v-model="inputMessage"
             :disabled="isLoading"
