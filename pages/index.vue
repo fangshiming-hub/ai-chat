@@ -12,7 +12,7 @@
     <!-- 主对话区 - 更宽更居中 -->
     <div class="flex-1 flex flex-col bg-white dark:bg-surface-900">
       <!-- 顶部工具栏 -->
-      <div class="h-14 px-6 border-b border-gray-200/50 dark:border-surface-800/50 flex items-center justify-between bg-white/50 dark:bg-surface-900/50 backdrop-blur-sm">
+      <div class=" px-6 py-3 border-b border-gray-200/50 dark:border-surface-800/50 flex items-center justify-between bg-white/50 dark:bg-surface-900/50 backdrop-blur-sm">
         <div class="flex items-center gap-3">
           <ModelSelector v-model="selectedModel" />
           <MultiSelect

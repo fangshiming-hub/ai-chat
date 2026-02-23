@@ -87,7 +87,7 @@
     </nav>
 
     <!-- 主内容区 -->
-    <main class="h-[calc(100vh-3.5rem)]">
+    <main class="h-[calc(100vh-3.6rem)]">
       <slot />
     </main>
   </div>
