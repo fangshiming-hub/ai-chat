@@ -121,6 +121,10 @@ export function useAuth() {
 
   // 检查登录状态
   async function checkAuth(): Promise<boolean> {
+    // 如果 token 为空，先尝试从 localStorage 恢复
+    if (!token.value) {
+      initAuth()
+    }
     if (!token.value) return false
 
     try {
