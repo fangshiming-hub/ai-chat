@@ -114,12 +114,17 @@ export function useChat() {
     error.value = null
   }
 
+  function setMessages(newMessages: ChatMessage[]) {
+    messages.value = newMessages
+  }
+
   return {
     messages: computed(() => messages.value),
     isLoading: computed(() => isLoading.value),
     error: computed(() => error.value),
     conversationId: computed(() => conversationId.value),
     sendMessage,
-    clearMessages
+    clearMessages,
+    setMessages
   }
 }

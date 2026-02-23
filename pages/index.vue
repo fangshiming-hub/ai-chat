@@ -60,7 +60,7 @@ import { useChat } from '~/composables/useChat'
 import { useConversations } from '~/composables/useConversations'
 import type { ApiResponse } from '~/composables/useAuth'
 
-const { messages, isLoading, sendMessage, clearMessages } = useChat()
+const { messages, isLoading, sendMessage, clearMessages, setMessages } = useChat()
 const { conversations, fetchConversations, deleteConversation: deleteConv, createConversation } = useConversations()
 
 const inputMessage = ref('')
@@ -127,8 +127,21 @@ async function selectConversation(id: string) {
       console.error('Failed to load conversation:', response.msg)
       return
     }
-    // 加载消息...
-    // TODO: 从 response.data 加载消息到 messages
+    // 加载消息到聊天窗口
+    if (response.data.messages && response.data.messages.length > 0) {
+      const loadedMessages = response.data.messages.map((msg: any) => ({
+        id: msg.id,
+        role: msg.role,
+        content: msg.content,
+        sources: msg.sources || []
+      }))
+      setMessages(loadedMessages)
+    } else {
+      clearMessages()
+    }
+    // 恢复模型和知识库选择
+    selectedModel.value = response.data.modelId || ''
+    selectedKBs.value = response.data.kbIds || []
   } catch (error) {
     console.error('Failed to load conversation:', error)
   }
