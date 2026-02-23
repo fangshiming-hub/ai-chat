@@ -43,7 +43,9 @@
       <ChatInput
         v-model="inputMessage"
         :disabled="isLoading"
+        :is-generating="isGenerating"
         @send="handleSend"
+        @stop="stopGeneration"
       />
     </div>
   </div>
@@ -60,7 +62,7 @@ import { useChat } from '~/composables/useChat'
 import { useConversations } from '~/composables/useConversations'
 import type { ApiResponse } from '~/composables/useAuth'
 
-const { messages, isLoading, sendMessage, clearMessages, setMessages } = useChat()
+const { messages, isLoading, isGenerating, sendMessage, stopGeneration, clearMessages, setMessages } = useChat()
 const { conversations, fetchConversations, deleteConversation: deleteConv, createConversation } = useConversations()
 
 const inputMessage = ref('')

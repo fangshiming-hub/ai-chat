@@ -11,9 +11,11 @@ export interface ChatMessage {
 export function useChat() {
   const messages = ref<ChatMessage[]>([])
   const isLoading = ref(false)
+  const isGenerating = ref(false)
   const conversationId = ref<string | null>(null)
   const error = ref<string | null>(null)
   const { getAuthHeader } = useAuth()
+  let abortController: AbortController | null = null
 
   async function sendMessage(
     content: string,
@@ -22,6 +24,7 @@ export function useChat() {
     if (!content.trim() || isLoading.value) return
 
     isLoading.value = true
+    isGenerating.value = true
     error.value = null
 
     // 添加用户消息
@@ -30,6 +33,9 @@ export function useChat() {
       role: 'user',
       content
     })
+
+    // 创建新的 AbortController
+    abortController = new AbortController()
 
     try {
       const response = await fetch('/api/chat', {
@@ -43,7 +49,8 @@ export function useChat() {
           conversationId: options.conversationId || conversationId.value,
           modelId: options.modelId,
           kbIds: options.kbIds
-        })
+        }),
+        signal: abortController.signal
       })
 
       // 检查是否是错误响应 (非流式)
@@ -74,6 +81,7 @@ export function useChat() {
       const decoder = new TextDecoder()
 
       while (true) {
+        if (!abortController) break
         const { done, value } = await reader.read()
         if (done) break
 
@@ -96,6 +104,11 @@ export function useChat() {
         }
       }
     } catch (err: any) {
+      // 如果是用户主动中断，不显示错误
+      if (err.name === 'AbortError') {
+        console.log('用户中断了生成')
+        return
+      }
       console.error('Chat error:', err)
       error.value = err.message || '发送消息失败'
       messages.value.push({
@@ -104,6 +117,17 @@ export function useChat() {
         content: `抱歉，发生了错误：${err.message || '请稍后重试'}`
       })
     } finally {
+      isLoading.value = false
+      isGenerating.value = false
+      abortController = null
+    }
+  }
+
+  function stopGeneration() {
+    if (abortController) {
+      abortController.abort()
+      abortController = null
+      isGenerating.value = false
       isLoading.value = false
     }
   }
@@ -121,9 +145,11 @@ export function useChat() {
   return {
     messages: computed(() => messages.value),
     isLoading: computed(() => isLoading.value),
+    isGenerating: computed(() => isGenerating.value),
     error: computed(() => error.value),
     conversationId: computed(() => conversationId.value),
     sendMessage,
+    stopGeneration,
     clearMessages,
     setMessages
   }

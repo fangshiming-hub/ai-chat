@@ -10,13 +10,24 @@
         @keydown.enter.prevent="handleEnter"
       />
       <button
+        v-if="isGenerating"
+        type="button"
+        class="btn-secondary self-end flex items-center gap-2"
+        @click="handleStop"
+      >
+        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+          <rect x="3" y="3" width="14" height="14" rx="2" />
+        </svg>
+        <span>停止</span>
+      </button>
+      <button
+        v-else
         type="button"
         class="btn-primary self-end"
         :disabled="!localValue.trim() || disabled"
         @click="handleSend"
       >
-        <span v-if="disabled">发送中...</span>
-        <span v-else>发送</span>
+        <span>发送</span>
       </button>
     </div>
     <p class="text-xs text-gray-500 mt-2">按 Enter 发送，Shift + Enter 换行</p>
@@ -29,11 +40,13 @@ import { computed } from 'vue'
 const props = defineProps<{
   modelValue: string
   disabled?: boolean
+  isGenerating?: boolean
 }>()
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void
   (e: 'send'): void
+  (e: 'stop'): void
 }>()
 
 const localValue = computed({
@@ -46,10 +59,16 @@ function handleSend() {
   emit('send')
 }
 
+function handleStop() {
+  emit('stop')
+}
+
 function handleEnter(event: KeyboardEvent) {
   if (event.shiftKey) {
     return
   }
-  handleSend()
+  if (!props.isGenerating) {
+    handleSend()
+  }
 }
 </script>
