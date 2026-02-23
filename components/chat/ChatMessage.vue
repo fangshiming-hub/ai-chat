@@ -15,9 +15,8 @@
 
     <!-- 内容 -->
     <div class="flex-1 min-w-0">
-      <div class="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
-        {{ message.content }}
-      </div>
+      <!-- Markdown 渲染内容 -->
+      <div class="markdown-content text-sm text-gray-800 leading-relaxed" v-html="renderedContent" />
 
       <!-- 引用来源 -->
       <div v-if="message.sources?.length" class="mt-3 pt-3 border-t border-gray-200">
@@ -37,7 +36,11 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
+import { computed } from 'vue'
+import { marked } from 'marked'
+import DOMPurify from 'dompurify'
+
+const props = defineProps<{
   message: {
     id: string
     role: 'user' | 'assistant' | 'system'
@@ -45,4 +48,129 @@ defineProps<{
     sources?: any[]
   }
 }>()
+
+// 配置 marked 选项
+marked.setOptions({
+  breaks: true,      // 支持换行符转换为 <br>
+  gfm: true,         // 启用 GitHub Flavored Markdown
+  headerIds: false,  // 禁用标题 ID
+  mangle: false      // 禁用 email 地址混淆
+})
+
+// 渲染 Markdown 并清理 HTML
+const renderedContent = computed(() => {
+  if (!props.message.content) return ''
+  const rawHtml = marked.parse(props.message.content) as string
+  return DOMPurify.sanitize(rawHtml)
+})
 </script>
+
+<style scoped>
+/* Markdown 样式 */
+.markdown-content :deep(h1) {
+  font-size: 1.5em;
+  font-weight: bold;
+  margin: 0.5em 0;
+}
+
+.markdown-content :deep(h2) {
+  font-size: 1.25em;
+  font-weight: bold;
+  margin: 0.5em 0;
+}
+
+.markdown-content :deep(h3) {
+  font-size: 1.1em;
+  font-weight: bold;
+  margin: 0.5em 0;
+}
+
+.markdown-content :deep(p) {
+  margin: 0.5em 0;
+}
+
+.markdown-content :deep(ul),
+.markdown-content :deep(ol) {
+  margin: 0.5em 0;
+  padding-left: 1.5em;
+}
+
+.markdown-content :deep(ul) {
+  list-style-type: disc;
+}
+
+.markdown-content :deep(ol) {
+  list-style-type: decimal;
+}
+
+.markdown-content :deep(li) {
+  margin: 0.25em 0;
+}
+
+.markdown-content :deep(pre) {
+  background-color: #1f2937;
+  color: #e5e7eb;
+  padding: 1em;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin: 0.5em 0;
+}
+
+.markdown-content :deep(code) {
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 0.9em;
+}
+
+.markdown-content :deep(pre code) {
+  background: none;
+  color: inherit;
+  padding: 0;
+}
+
+.markdown-content :deep(:not(pre) > code) {
+  background-color: #e5e7eb;
+  color: #374151;
+  padding: 0.2em 0.4em;
+  border-radius: 0.25rem;
+}
+
+.markdown-content :deep(blockquote) {
+  border-left: 4px solid #d1d5db;
+  padding-left: 1em;
+  margin: 0.5em 0;
+  color: #6b7280;
+}
+
+.markdown-content :deep(a) {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+.markdown-content :deep(a:hover) {
+  color: #1d4ed8;
+}
+
+.markdown-content :deep(table) {
+  border-collapse: collapse;
+  margin: 0.5em 0;
+  width: 100%;
+}
+
+.markdown-content :deep(th),
+.markdown-content :deep(td) {
+  border: 1px solid #d1d5db;
+  padding: 0.5em;
+  text-align: left;
+}
+
+.markdown-content :deep(th) {
+  background-color: #f3f4f6;
+  font-weight: bold;
+}
+
+.markdown-content :deep(hr) {
+  border: none;
+  border-top: 1px solid #d1d5db;
+  margin: 1em 0;
+}
+</style>
