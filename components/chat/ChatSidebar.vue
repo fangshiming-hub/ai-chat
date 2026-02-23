@@ -1,8 +1,15 @@
 <template>
-  <aside class="w-64 bg-gray-50 border-r border-gray-200 flex flex-col h-full">
-    <!-- 头部 -->
-    <div class="p-4 border-b border-gray-200">
-      <button class="btn-primary w-full flex items-center justify-center gap-2" @click="$emit('new-chat')">
+  <aside class="w-56 bg-white dark:bg-surface-900 border-r border-gray-200/50 dark:border-surface-800/50 flex flex-col h-full">
+    <!-- 新对话按钮 -->
+    <div class="p-3 border-b border-gray-200/50 dark:border-surface-800/50">
+      <button
+        class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl
+               bg-primary-50 dark:bg-primary-500/10
+               text-primary-600 dark:text-primary-400
+               hover:bg-primary-100 dark:hover:bg-primary-500/20
+               transition-all duration-200 font-medium text-sm"
+        @click="$emit('new-chat')"
+      >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
@@ -11,20 +18,25 @@
     </div>
 
     <!-- 对话列表 -->
-    <div class="flex-1 overflow-y-auto p-2 space-y-1">
+    <div class="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
       <div
         v-for="conv in conversations"
         :key="conv.id"
-        class="group flex items-center justify-between p-3 rounded-lg cursor-pointer hover:bg-gray-200"
-        :class="{ 'bg-gray-200': currentId === conv.id }"
+        class="group flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer
+               text-sm transition-all duration-200"
+        :class="currentId === conv.id
+          ? 'bg-primary-50 dark:bg-primary-500/10 text-primary-700 dark:text-primary-300'
+          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-surface-800'"
         @click="$emit('select', conv.id)"
       >
         <div class="flex-1 min-w-0">
-          <p class="text-sm font-medium text-gray-900 truncate">{{ conv.title }}</p>
-          <p class="text-xs text-gray-500">{{ formatDate(conv.updatedAt) }}</p>
+          <p class="font-medium truncate">{{ conv.title }}</p>
+          <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{{ formatDate(conv.updatedAt) }}</p>
         </div>
         <button
-          class="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-600"
+          class="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg
+                 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10
+                 transition-all duration-200"
           @click.stop="$emit('delete', conv.id)"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -33,7 +45,7 @@
         </button>
       </div>
 
-      <div v-if="conversations.length === 0" class="text-center py-8 text-gray-500 text-sm">
+      <div v-if="conversations.length === 0" class="text-center py-8 text-gray-400 dark:text-gray-500 text-sm">
         暂无对话
       </div>
     </div>

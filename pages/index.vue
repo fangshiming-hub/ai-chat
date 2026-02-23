@@ -1,6 +1,6 @@
 <template>
-  <div class="h-[calc(100vh-8rem)] flex">
-    <!-- 侧边栏 -->
+  <div class="h-full flex bg-surface-50 dark:bg-surface-950">
+    <!-- 侧边栏 - 更窄更靠左 -->
     <ChatSidebar
       :conversations="conversations"
       :current-id="currentConversationId"
@@ -9,44 +9,72 @@
       @new-chat="startNewChat"
     />
 
-    <!-- 主对话区 -->
-    <div class="flex-1 flex flex-col bg-white">
-      <!-- 模型选择器 -->
-      <div class="p-4 border-b border-gray-200 flex items-center gap-4">
-        <ModelSelector v-model="selectedModel" />
-        <MultiSelect
-          v-model="selectedKBs"
-          :options="kbOptions"
-          placeholder="选择知识库"
-          class="w-64"
-        />
-      </div>
-
-      <!-- 对话区域 -->
-      <div ref="chatContainer" class="flex-1 overflow-y-auto p-4 space-y-4">
-        <div v-if="messages.length === 0" class="text-center text-gray-500 py-12">
-          <p class="text-lg">开始一个新的对话</p>
-          <p class="text-sm mt-2">发送消息开始与 AI 对话</p>
+    <!-- 主对话区 - 更宽更居中 -->
+    <div class="flex-1 flex flex-col bg-white dark:bg-surface-900">
+      <!-- 顶部工具栏 -->
+      <div class="h-14 px-6 border-b border-gray-200/50 dark:border-surface-800/50 flex items-center justify-between bg-white/50 dark:bg-surface-900/50 backdrop-blur-sm">
+        <div class="flex items-center gap-3">
+          <ModelSelector v-model="selectedModel" />
+          <MultiSelect
+            v-model="selectedKBs"
+            :options="kbOptions"
+            placeholder="选择知识库"
+            class="w-56"
+          />
         </div>
-        <ChatMessage
-          v-for="message in messages"
-          :key="message.id"
-          :message="message"
-        />
-        <div v-if="isLoading" class="flex items-center gap-2 text-gray-500">
-          <div class="animate-spin h-4 w-4 border-2 border-primary-500 border-t-transparent rounded-full" />
-          <span>AI 正在思考...</span>
+
+        <!-- 当前对话标题 -->
+        <div v-if="currentConversationId" class="text-sm text-gray-500 dark:text-gray-400">
+          {{ conversations.find(c => c.id === currentConversationId)?.title }}
         </div>
       </div>
 
-      <!-- 输入区域 -->
-      <ChatInput
-        v-model="inputMessage"
-        :disabled="isLoading"
-        :is-generating="isGenerating"
-        @send="handleSend"
-        @stop="stopGeneration"
-      />
+      <!-- 对话区域 - 更宽的容器 -->
+      <div ref="chatContainer" class="flex-1 overflow-y-auto custom-scrollbar">
+        <div class="max-w-4xl mx-auto px-6 py-6 space-y-6">
+          <!-- 空状态 -->
+          <div v-if="messages.length === 0" class="flex flex-col items-center justify-center h-96 text-center">
+            <div class="w-20 h-20 rounded-3xl bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center mb-6 shadow-glow">
+              <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">开始一个新的对话</h3>
+            <p class="text-gray-500 dark:text-gray-400">选择一个模型，发送消息开始与 AI 对话</p>
+          </div>
+
+          <!-- 消息列表 -->
+          <template v-else>
+            <ChatMessage
+              v-for="message in messages"
+              :key="message.id"
+              :message="message"
+            />
+          </template>
+
+          <!-- 加载中 -->
+          <div v-if="isLoading" class="flex items-center gap-3 text-gray-500 dark:text-gray-400 py-4">
+            <div class="w-6 h-6 relative">
+              <div class="absolute inset-0 rounded-full border-2 border-primary-500/20"></div>
+              <div class="absolute inset-0 rounded-full border-2 border-primary-500 border-t-transparent animate-spin"></div>
+            </div>
+            <span class="text-sm">AI 正在思考...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 输入区域 - 固定在底部 -->
+      <div class="border-t border-gray-200/50 dark:border-surface-800/50 bg-white/80 dark:bg-surface-900/80 backdrop-blur-xl">
+        <div class="max-w-4xl mx-auto px-6 py-4">
+          <ChatInput
+            v-model="inputMessage"
+            :disabled="isLoading"
+            :is-generating="isGenerating"
+            @send="handleSend"
+            @stop="stopGeneration"
+          />
+        </div>
+      </div>
     </div>
   </div>
 </template>

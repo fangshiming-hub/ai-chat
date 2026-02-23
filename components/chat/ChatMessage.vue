@@ -1,31 +1,35 @@
 <template>
   <div
-    class="flex gap-4 p-4 rounded-lg"
-    :class="message.role === 'user' ? 'bg-primary-50' : 'bg-gray-50'"
+    class="flex gap-4 p-4 rounded-2xl transition-colors duration-200"
+    :class="message.role === 'user'
+      ? 'bg-primary-50/50 dark:bg-primary-500/5'
+      : 'bg-surface-50 dark:bg-surface-800/50'"
   >
     <!-- 头像 -->
     <div class="flex-shrink-0">
       <div
-        class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium"
-        :class="message.role === 'user' ? 'bg-primary-500 text-white' : 'bg-gray-600 text-white'"
+        class="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-medium shadow-sm"
+        :class="message.role === 'user'
+          ? 'bg-gradient-to-br from-primary-500 to-primary-600 text-white'
+          : 'bg-gradient-to-br from-purple-500 to-pink-500 text-white'"
       >
         {{ message.role === 'user' ? 'U' : 'AI' }}
       </div>
     </div>
 
     <!-- 内容 -->
-    <div class="flex-1 min-w-0">
+    <div class="flex-1 min-w-0 pt-1">
       <!-- Markdown 渲染内容 -->
-      <div class="markdown-content text-sm text-gray-800 leading-relaxed" v-html="renderedContent" />
+      <div class="markdown-content text-gray-800 dark:text-gray-200 leading-relaxed" v-html="renderedContent" />
 
       <!-- 引用来源 -->
-      <div v-if="message.sources?.length" class="mt-3 pt-3 border-t border-gray-200">
-        <p class="text-xs text-gray-500 mb-2">参考来源：</p>
-        <div class="space-y-1">
+      <div v-if="message.sources?.length" class="mt-4 pt-3 border-t border-gray-200/50 dark:border-surface-700/50">
+        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2 font-medium">参考来源：</p>
+        <div class="flex flex-wrap gap-2">
           <div
             v-for="(source, index) in message.sources"
             :key="index"
-            class="text-xs text-gray-600 bg-white px-2 py-1 rounded border"
+            class="text-xs px-2.5 py-1 rounded-lg bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 text-gray-600 dark:text-gray-400"
           >
             [{{ index + 1 }}] {{ source.documentName }}
           </div>

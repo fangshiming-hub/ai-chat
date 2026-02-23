@@ -2,14 +2,19 @@
   <div class="relative">
     <button
       type="button"
-      class="input-field text-left flex items-center justify-between"
+      class="w-full bg-gray-100 dark:bg-surface-800 border-0 rounded-xl
+             py-2.5 pl-4 pr-10 text-sm text-left
+             text-gray-900 dark:text-gray-100
+             focus:ring-2 focus:ring-primary-500/20 dark:focus:ring-primary-500/30
+             transition-all duration-200
+             flex items-center justify-between hover:bg-gray-200 dark:hover:bg-surface-700"
       @click="isOpen = !isOpen"
     >
-      <span v-if="selectedLabels.length === 0" class="text-gray-400">{{ placeholder }}</span>
-      <span v-else class="truncate">{{ selectedLabels.join(', ') }}</span>
+      <span v-if="selectedLabels.length === 0" class="text-gray-400 dark:text-gray-500">{{ placeholder }}</span>
+      <span v-else class="truncate font-medium">{{ selectedLabels.join(', ') }}</span>
       <svg
-        class="w-4 h-4 text-gray-400 ml-2"
-        :class="{ 'transform rotate-180': isOpen }"
+        class="w-4 h-4 text-gray-400 dark:text-gray-500 ml-2 transition-transform duration-200"
+        :class="{ 'rotate-180': isOpen }"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -20,22 +25,22 @@
 
     <div
       v-if="isOpen"
-      class="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto"
+      class="absolute z-20 mt-2 w-full bg-white dark:bg-surface-800 shadow-xl max-h-60 rounded-xl py-1 overflow-auto border border-gray-100 dark:border-surface-700"
     >
       <div
         v-for="option in options"
         :key="option.value"
-        class="cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-primary-50"
+        class="cursor-pointer select-none relative py-2.5 pl-3 pr-9 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition-colors"
         @click="toggleOption(option.value)"
       >
         <div class="flex items-center">
           <input
             type="checkbox"
             :checked="modelValue.includes(option.value)"
-            class="h-4 w-4 text-primary-600 border-gray-300 rounded"
+            class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 dark:border-surface-600 dark:bg-surface-700"
             @click.stop
           />
-          <span class="ml-3 block truncate">{{ option.label }}</span>
+          <span class="ml-3 block truncate text-gray-700 dark:text-gray-300">{{ option.label }}</span>
         </div>
       </div>
     </div>

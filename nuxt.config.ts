@@ -5,6 +5,9 @@ export default defineNuxtConfig({
     '@nuxtjs/tailwindcss',
     '@pinia/nuxt'
   ],
+  css: [
+    '~/assets/css/main.css'
+  ],
   runtimeConfig: {
     // 服务端私有配置
     databaseUrl: process.env.DATABASE_URL,

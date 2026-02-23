@@ -7,18 +7,112 @@
     @apply antialiased;
   }
   body {
-    @apply bg-gray-50 text-gray-900;
+    @apply bg-surface-50 text-gray-900 dark:bg-surface-950 dark:text-gray-100;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   }
 }
 
 @layer components {
+  /* 主按钮 - 现代化渐变 */
   .btn-primary {
-    @apply inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500;
+    @apply inline-flex items-center justify-center px-4 py-2.5 text-sm font-medium rounded-xl
+           text-white bg-gradient-to-r from-primary-600 to-primary-500
+           hover:from-primary-500 hover:to-primary-400
+           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500
+           dark:focus:ring-offset-surface-900
+           transition-all duration-200 shadow-soft hover:shadow-glow;
   }
+
+  /* 次要按钮 */
   .btn-secondary {
-    @apply inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500;
+    @apply inline-flex items-center justify-center px-4 py-2.5 text-sm font-medium rounded-xl
+           text-gray-700 dark:text-gray-200 bg-white dark:bg-surface-800
+           border border-gray-200 dark:border-surface-700
+           hover:bg-gray-50 dark:hover:bg-surface-700
+           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500
+           dark:focus:ring-offset-surface-900
+           transition-all duration-200;
   }
+
+  /* 危险按钮 */
+  .btn-danger {
+    @apply inline-flex items-center justify-center px-4 py-2.5 text-sm font-medium rounded-xl
+           text-white bg-red-600
+           hover:bg-red-500
+           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500
+           dark:focus:ring-offset-surface-900
+           transition-all duration-200;
+  }
+
+  /* 输入框 - 现代化样式 */
   .input-field {
-    @apply block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm;
+    @apply block w-full rounded-xl border-gray-200 dark:border-surface-700
+           bg-white dark:bg-surface-800
+           text-gray-900 dark:text-gray-100
+           shadow-sm
+           focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20
+           dark:focus:ring-primary-500/30
+           transition-all duration-200;
+  }
+
+  /* 卡片样式 */
+  .card {
+    @apply bg-white dark:bg-surface-900 rounded-2xl shadow-soft
+           border border-gray-100 dark:border-surface-800;
+  }
+
+  /* 导航链接 */
+  .nav-link {
+    @apply inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium
+           text-gray-600 dark:text-gray-400
+           hover:bg-gray-100 dark:hover:bg-surface-800 hover:text-gray-900 dark:hover:text-gray-100
+           transition-colors duration-200;
+  }
+
+  .nav-link-active {
+    @apply text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-500/10;
+  }
+
+  /* 滚动条样式 */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 dark:bg-surface-700 rounded-full;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400 dark:bg-surface-600;
   }
 }
+
+/* Markdown 暗色模式适配 */
+.dark .markdown-content :deep(pre) {
+  background-color: #1e1e2e;
+}
+
+.dark .markdown-content :deep(:not(pre) > code) {
+  background-color: #313244;
+  color: #cdd6f4;
+}
+
+.dark .markdown-content :deep(blockquote) {
+  border-left-color: #45475a;
+  color: #a6adc8;
+}
+
+.dark .markdown-content :deep(th) {
+  background-color: #313244;
+}
+
+.dark .markdown-content :deep(td),
+.dark .markdown-content :deep(th) {
+  border-color: #45475a;
+}
+
