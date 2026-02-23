@@ -2,7 +2,7 @@
   <div class="max-w-4xl mx-auto">
     <div class="flex justify-between items-center mb-6">
       <h1 class="text-2xl font-bold">模型配置</h1>
-      <button class="btn-primary" @click="showAddModal = true">添加模型</button>
+      <button class="btn-primary" @click="openAddModal">添加模型</button>
     </div>
 
     <div class="bg-white shadow overflow-hidden sm:rounded-md">
@@ -17,6 +17,7 @@
               <p class="text-sm text-gray-500">{{ model.provider }} / {{ model.model }}</p>
             </div>
             <div class="flex gap-2">
+              <button class="text-blue-600 hover:text-blue-800 text-sm" @click="editModel(model)">编辑</button>
               <button v-if="!model.isDefault" class="btn-secondary text-xs" @click="setDefault(model.id)">设为默认</button>
               <button class="text-red-600 hover:text-red-800 text-sm" @click="deleteModel(model.id)">删除</button>
             </div>
@@ -28,11 +29,11 @@
       </ul>
     </div>
 
-    <!-- 添加模型弹窗 -->
+    <!-- 添加/编辑模型弹窗 -->
     <div v-if="showAddModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
       <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
-        <h2 class="text-lg font-medium mb-4">添加模型</h2>
-        
+        <h2 class="text-lg font-medium mb-4">{{ editingModel ? '编辑模型' : '添加模型' }}</h2>
+
         <form @submit.prevent="handleSubmit">
           <div class="space-y-4">
             <div>
@@ -77,7 +78,7 @@
           </div>
 
           <div class="mt-6 flex justify-end gap-3">
-            <button type="button" class="btn-secondary" @click="showAddModal = false">取消</button>
+            <button type="button" class="btn-secondary" @click="closeModal">取消</button>
             <button type="submit" class="btn-primary">保存</button>
           </div>
         </form>
@@ -95,11 +96,15 @@ interface Model {
   name: string
   provider: string
   model: string
+  baseUrl?: string
+  apiKey: string
+  temperature?: number
   isDefault: boolean
 }
 
 const models = ref<Model[]>([])
 const showAddModal = ref(false)
+const editingModel = ref<Model | null>(null)
 const form = ref({
   name: '',
   provider: 'openai',
@@ -129,24 +134,63 @@ async function fetchModels() {
 async function handleSubmit() {
   const { getAuthHeader } = useAuth()
   try {
-    const response = await $fetch<ApiResponse<any>>('/api/models', {
-      method: 'POST',
-      headers: getAuthHeader(),
-      body: {
-        ...form.value,
-        temperature: parseFloat(form.value.temperature)
-      }
-    })
+    const body = {
+      ...form.value,
+      temperature: parseFloat(form.value.temperature)
+    }
+
+    let response: ApiResponse<any>
+    if (editingModel.value) {
+      // 编辑模式
+      response = await $fetch<ApiResponse<any>>(`/api/models/${editingModel.value.id}`, {
+        method: 'PUT',
+        headers: getAuthHeader(),
+        body
+      })
+    } else {
+      // 新增模式
+      response = await $fetch<ApiResponse<any>>('/api/models', {
+        method: 'POST',
+        headers: getAuthHeader(),
+        body
+      })
+    }
+
     if (response.statusCode !== 0) {
-      alert(response.msg || '添加失败')
+      alert(response.msg || (editingModel.value ? '更新失败' : '添加失败'))
       return
     }
-    showAddModal.value = false
-    form.value = { name: '', provider: 'openai', baseUrl: '', apiKey: '', model: '', temperature: '0.7', isDefault: false }
+    closeModal()
     await fetchModels()
   } catch (error: any) {
-    alert(error.message || '添加失败')
+    alert(error.message || (editingModel.value ? '更新失败' : '添加失败'))
   }
+}
+
+function editModel(model: Model) {
+  editingModel.value = model
+  form.value = {
+    name: model.name,
+    provider: model.provider,
+    baseUrl: model.baseUrl || '',
+    apiKey: model.apiKey,
+    model: model.model,
+    temperature: String(model.temperature ?? 0.7),
+    isDefault: model.isDefault
+  }
+  showAddModal.value = true
+}
+
+function openAddModal() {
+  editingModel.value = null
+  form.value = { name: '', provider: 'openai', baseUrl: '', apiKey: '', model: '', temperature: '0.7', isDefault: false }
+  showAddModal.value = true
+}
+
+function closeModal() {
+  showAddModal.value = false
+  editingModel.value = null
+  form.value = { name: '', provider: 'openai', baseUrl: '', apiKey: '', model: '', temperature: '0.7', isDefault: false }
 }
 
 async function setDefault(id: string) {
